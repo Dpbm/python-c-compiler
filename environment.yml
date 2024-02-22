@@ -1,0 +1,3 @@
+name: compiler
+channels: 
+  - conda-forge
