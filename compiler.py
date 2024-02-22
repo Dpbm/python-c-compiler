@@ -1,8 +1,16 @@
 import sys
 import os
+from lexer import lexer
 
 def main(file):
-    print(file.read())
+    line = file.readline()
+    i = 1
+
+    while(line):
+        lexer(line,i)
+        line = file.readline()
+        i += 1
+
 
 if __name__ == "__main__":
     arguments = sys.argv
