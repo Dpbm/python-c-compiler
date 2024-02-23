@@ -6,3 +6,4 @@
 - [X] remove empty symbols
 - [ ] get entire numbers
 - [ ] test directive
+- [ ] check `multiple lines symbols`

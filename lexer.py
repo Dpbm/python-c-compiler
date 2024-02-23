@@ -41,7 +41,7 @@ def lexer(line, line_i):
             first_type = actual_char_type
             token = ''
             
-        elif(first_type == 'symbols'):
+        elif(first_type == 'symbols' and token not in COMPOUNDS_SYMBOLS):
             if(token):
                 found_tokens.append((token, 'symbols'))
             first_type = actual_char_type
