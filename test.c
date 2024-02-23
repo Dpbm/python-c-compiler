@@ -1,8 +1,6 @@
-#include <stdio.h>
-
-//hello world
 void main(){
-  int a=0;
-  float alberto=10;
-  double _roberto = 1;
+  int a = 0;
+  double d = 1000;
+  float hcc = 13;
+  do{}while();
 }

@@ -6,38 +6,47 @@ def get_type(char):
             return s_type
     return None
 
+def check_token_characters(token):
+    if(not len(token) or not get_type(token[0])):
+        return False
+    
+    first_char_type = get_type(token[0])
+    for char in token:
+        if(get_type(char) != first_char_type):
+            return False
+    return True
+        
+
+
+
 def lexer(line, line_i):
     line = line.replace('\n', '')
 
     if(not line):
         return
-    
-    found_tokens = []
+   
     token = ''
     line += ' '
-    
+    first_type = get_type(line[0])
+    found_tokens = []
 
     for i,char in enumerate(line):
-        if(char == ' ' and i != len(line)-1):
-            continue
-        
-        token_type = get_type(token)
+        actual_char_type = get_type(char)
 
-        if(token_type == 'directive'):
-            found_tokens.append((token, token_type))
-            break
-        elif(token_type == 'reserved'  or 
-             (token_type == 'symbols' and 
-              token not in COMPOUNDS_SYMBOLS)):
-            found_tokens.append((token, token_type))
+        if(first_type != actual_char_type):
+            token_type = get_type(token)
+            if(token_type and token or 
+               (not token_type and check_token_characters(token))):
+                found_tokens.append((token, token_type if token_type else get_type(token[0])))
+            first_type = actual_char_type
+            token = ''
+            
+        elif(first_type == 'symbols'):
+            if(token):
+                found_tokens.append((token, 'symbols'))
+            first_type = actual_char_type
             token=''
 
-        # elif(len(token) and
-        #      get_type(token[0]) == 'letters' and 
-        #      get_type(token[-1]) == 'letters' and
-        #      get_type(char) not in [None, 'letters']):
-        #     found_tokens.append((token, token_type))
-        #     token=''
-        
         token += char
+
     print(found_tokens)
