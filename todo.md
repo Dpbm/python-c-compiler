@@ -1,5 +1,7 @@
 # TODOS
 
+- [ ] add `-=, +=, *=, /=, etc.`
+    - [ ] test it too
 - [ ] add tests
     - [X] add gh workflow
 - [ ] verify variables
