@@ -1,5 +1,7 @@
 # TODOS
 
+- [ ] add tests
+    - [X] add gh workflow
 - [ ] verify variables
     - [ ] check for `_` and `numbers` in it 
 - [X] differ string (using `'` or `"`) to a variable
