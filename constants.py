@@ -7,11 +7,13 @@ LETTERS = set().union(LETTERS_LOWERCASE, LETTERS_UPPERCASE)
 NUMBERS = set(list(digits))
 
 DIRECTIVE_ONE_LINE = {'#', '//'}
-DIRECTIVE_MULTIPLE_LINES = {'/*', '*/'}
+DIRECTIVE_MULTIPLE_LINES_BEGIN = '/*'
+DIRECTIVE_MULTIPLE_LINES_END = '*/'
+DIRECTIVE_MULTIPLE_LINES = {DIRECTIVE_MULTIPLE_LINES_BEGIN, DIRECTIVE_MULTIPLE_LINES_END}
 SYMBOLS = {',', ';', '(', ')', '{', '}', "'", '"', '+', '-', ':', '%', '/', '*', '=', '==', '[',']'}
 RESERVED = {'void', 'main', 'int', 'char', 'for', 'if', 'while', 'return', 'static', 'double', 'do', 'goto', 'auto', 'else', 'float'}
 
-COMPOUNDS_SYMBOLS = {'/', '+', '-'}
+COMPOUNDS_SYMBOLS = {'/', '+', '-', '*'}
 
 DIRECTIVE = set().union(DIRECTIVE_ONE_LINE, DIRECTIVE_MULTIPLE_LINES)
 
