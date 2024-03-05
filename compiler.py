@@ -3,7 +3,8 @@ import os
 from lexer import lexer_main
 
 def main(file):
-    lexer_main(file)
+    tokens = lexer_main(file.read().splitlines())
+    print(tokens)
 
 if __name__ == "__main__":
     arguments = sys.argv
