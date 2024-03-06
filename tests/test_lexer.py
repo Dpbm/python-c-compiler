@@ -1,5 +1,5 @@
 import unittest
-from constants import DIRECTIVE, SYMBOLS, RESERVED, LETTERS, NUMBERS, SYMBOLS_TYPES
+from constants import OPEN_DIRECTIVE, DIRECTIVE_MULTIPLE_LINES, DIRECTIVE, SYMBOLS, RESERVED, LETTERS, NUMBERS, SYMBOLS_TYPES
 from lexer import get_type, check_token_characters, lexer_main
 from itertools import product
 
@@ -71,6 +71,70 @@ class TestLexerMain(unittest.TestCase):
             for directive_left, directive_right in product(DIRECTIVE, repeat=2):
                 result = lexer_main([directive_left+letter+directive_right])
                 self.assertEqual(result[0][0][1], 'directive')
+                self.assertEqual(len(result[0]), 1 if directive_left in OPEN_DIRECTIVE else 3)
 
+    def test_distinguish_numbers_next_to_symbols(self):
+        for number in NUMBERS:
+            for symbol_left, symbol_right in product(SYMBOLS, repeat=2):
+                result = lexer_main([symbol_left+number+symbol_right])
+                self.assertEqual(result[0][0][1], 'symbols')
+                self.assertEqual(result[0][1][1], 'numbers')
+                self.assertEqual(result[0][2][1], 'symbols')
+    
+    def test_distinguish_numbers_next_to_directive(self):
+        for number in NUMBERS:
+            for directive_left, directive_right in product(DIRECTIVE, repeat=2):
+                result = lexer_main([directive_left+number+directive_right])
+                self.assertEqual(result[0][0][1], 'directive')
+                self.assertEqual(len(result[0]), 1 if directive_left in OPEN_DIRECTIVE else 3)
+    
+    def test_distinguish_numbers_next_to_letters(self):
+        for number in NUMBERS:
+            for letter_left, letter_right in product(LETTERS, repeat=2):
+                result = lexer_main([letter_left+number+letter_right])
+                self.assertEqual(result[0][0][1], 'letters')
+                self.assertEqual(result[0][1][1], 'numbers')
+                self.assertEqual(result[0][2][1], 'letters')
+
+    def test_distinguish_numbers_next_to_reserved_words(self):
+        for number in NUMBERS:
+            for reserved_left, reserved_right in product(RESERVED, repeat=2):
+                result = lexer_main([reserved_left+number+reserved_right])
+                self.assertEqual(result[0][0][1], 'reserved')
+                self.assertEqual(result[0][1][1], 'numbers')
+                self.assertEqual(result[0][2][1], 'reserved')
+    
+    def test_distinguish_directive_next_to_letters(self):
+        for directive in DIRECTIVE:
+            for letter_left, letter_right in product(LETTERS, repeat=2):
+                result = lexer_main([letter_left+directive+letter_right])
+
+                self.assertEqual(result[0][0][1], 'letters')
+                self.assertEqual(result[0][1][1], 'directive')
+                self.assertEqual(len(result[0]), 2 if directive in OPEN_DIRECTIVE else 3)
+
+    def test_distinguish_directive_next_to_numbers(self):
+        for directive in DIRECTIVE:
+            for number_left, number_right in product(NUMBERS, repeat=2):
+                result = lexer_main([number_left+directive+number_right])
+                self.assertEqual(result[0][0][1], 'numbers')
+                self.assertEqual(result[0][1][1], 'directive')
+                self.assertEqual(len(result[0]), 2 if directive in OPEN_DIRECTIVE else 3)
+    
+    def test_distinguish_directive_next_to_symbols(self):
+        for directive in DIRECTIVE:
+            for symbol_left, symbol_right in product(SYMBOLS-{'/', '*'}, repeat=2):
+                result = lexer_main([symbol_left+directive+symbol_right])
+                self.assertEqual(result[0][0][1], 'symbols')
+                self.assertEqual(result[0][1][1], 'directive')
+                self.assertEqual(len(result[0]), 2 if directive in OPEN_DIRECTIVE else 3)
+    
+    def test_distinguish_directive_next_to_reserved_words(self):
+        for directive in DIRECTIVE:
+            for reserved_left, reserved_right in product(RESERVED, repeat=2):
+                result = lexer_main([reserved_left+directive+reserved_right])
+                self.assertEqual(result[0][0][1], 'reserved')
+                self.assertEqual(result[0][1][1], 'directive')
+                self.assertEqual(len(result[0]), 2 if directive in OPEN_DIRECTIVE else 3)
 if __name__ == '__main__':
     unittest.main()
