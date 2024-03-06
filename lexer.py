@@ -59,24 +59,36 @@ def lexer(line, directive_multiple_lines=False):
                     directive_multiple_lines = False
 
                 if(token_type == 'directive' and token in DIRECTIVE_ONE_LINE):
+                
                     break
 
             first_type = actual_char_type
             token = ''
 
         elif(first_type == 'symbols' and token in COMPLETE_COMPOUND_SYMBOLS):
-            found_tokens.append((token, get_type(token)))
-            first_type = actual_char_type
+            if(not directive_multiple_lines and token in DIRECTIVE_ONE_LINE):    
+                found_tokens.append((token, get_type(token)))
+                break
+            
+            if((directive_multiple_lines and token==DIRECTIVE_MULTIPLE_LINES_END) or
+               (not directive_multiple_lines and token == DIRECTIVE_MULTIPLE_LINES_BEGIN) or 
+               (not directive_multiple_lines)
+               ):
+                found_tokens.append((token, get_type(token)))
+                first_type = actual_char_type
+
             if(token == DIRECTIVE_MULTIPLE_LINES_BEGIN):
                 directive_multiple_lines = True
             elif(token == DIRECTIVE_MULTIPLE_LINES_END):
                 directive_multiple_lines = False
+            
 
-            if(not directive_multiple_lines and token in DIRECTIVE_ONE_LINE):
-                break
             token=''
+            
+            
+            
 
-        elif(first_type == 'symbols' and (token not in COMPOUNDS_SYMBOLS or token+char not in COMPLETE_COMPOUND_SYMBOLS)):
+        elif(first_type == 'symbols' and (token not in COMPOUNDS_SYMBOLS or token+char not in COMPLETE_COMPOUND_SYMBOLS) and not directive_multiple_lines):
             if(token):
                 found_tokens.append((token, 'symbols'))
             first_type = actual_char_type

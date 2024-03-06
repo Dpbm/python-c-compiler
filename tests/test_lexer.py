@@ -1,5 +1,5 @@
 import unittest
-from constants import OPEN_DIRECTIVE, DIRECTIVE_MULTIPLE_LINES, DIRECTIVE, SYMBOLS, RESERVED, LETTERS, NUMBERS, SYMBOLS_TYPES
+from constants import OPEN_DIRECTIVE,DIRECTIVE_MULTIPLE_LINES_BEGIN, DIRECTIVE_MULTIPLE_LINES_END, DIRECTIVE_MULTIPLE_LINES,DIRECTIVE_ONE_LINE, DIRECTIVE, SYMBOLS, RESERVED, LETTERS, NUMBERS, SYMBOLS_TYPES
 from lexer import get_type, check_token_characters, lexer_main
 from itertools import product
 
@@ -162,7 +162,7 @@ class TestLexerMain(unittest.TestCase):
 
     def test_distinguish_symbols_next_to_numbers(self):
         for symbol in SYMBOLS:
-            for numbers_left, number_right in product(NUMBERS, repeat=2):
+            for number_left, number_right in product(NUMBERS, repeat=2):
                 result = lexer_main([number_left+symbol+number_right])
                 self.assertEqual(result[0][0][1], 'numbers')
                 self.assertEqual(result[0][1][1], 'symbols')
@@ -175,5 +175,20 @@ class TestLexerMain(unittest.TestCase):
                 self.assertEqual(result[0][0][1], 'letters')
                 self.assertEqual(result[0][1][1], 'symbols')
                 self.assertEqual(result[0][2][1], 'letters')
+
+
+    def test_distinguish_symbols_next_to_directives(self):
+        for symbol in SYMBOLS-{'/', '*'}:
+            for directive_left, directive_right in product(DIRECTIVE, repeat=2):
+                result = lexer_main([directive_left+symbol+directive_right])
+                self.assertEqual(result[0][0][1], 'directive')
+                print(result, directive_right, symbol)
+                if(directive_left == DIRECTIVE_MULTIPLE_LINES_BEGIN and directive_right == DIRECTIVE_MULTIPLE_LINES_END):
+                    self.assertEqual(len(result[0]), 2)
+                elif(directive_left in OPEN_DIRECTIVE):
+                    self.assertEqual(len(result[0]), 1)
+                else:
+                    self.assertEqual(len(result[0]), 3)
+
 if __name__ == '__main__':
     unittest.main()
