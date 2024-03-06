@@ -17,9 +17,9 @@
         - [x] distinguish directive from numbers
         - [x] distinguish directive from symbols
         - [x] distinguish directive from reserved
-        - [ ] distinguish reserved from symbols
-        - [ ] distinguish reserved from directive
-        - [ ] distinguish reserved from numbers
+        - [x] distinguish reserved from symbols
+        - [x] distinguish reserved from directive
+        - [x] distinguish reserved from numbers
         - [ ] distinguish symbols from reserved
         - [ ] distinguish symbols from letters
         - [ ] distinguish symbols from numbers

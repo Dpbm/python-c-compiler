@@ -136,5 +136,44 @@ class TestLexerMain(unittest.TestCase):
                 self.assertEqual(result[0][0][1], 'reserved')
                 self.assertEqual(result[0][1][1], 'directive')
                 self.assertEqual(len(result[0]), 2 if directive in OPEN_DIRECTIVE else 3)
+
+    def test_distinguish_reserved_next_to_symbols(self):
+        for reserved in RESERVED:
+            for symbol_left, symbol_right in product(SYMBOLS, repeat=2):
+                result = lexer_main([symbol_left+reserved+symbol_right])
+                self.assertEqual(result[0][0][1], 'symbols')
+                self.assertEqual(result[0][1][1], 'reserved')
+                self.assertEqual(result[0][2][1], 'symbols')
+    
+    def test_distinguish_reserved_next_to_numbers(self):
+        for reserved in RESERVED:
+            for number_left, number_right in product(NUMBERS, repeat=2):
+                result = lexer_main([number_left+reserved+number_right])
+                self.assertEqual(result[0][0][1], 'numbers')
+                self.assertEqual(result[0][1][1], 'reserved')
+                self.assertEqual(result[0][2][1], 'numbers')
+    
+    def test_distinguish_reserved_next_to_directive(self):
+        for reserved in RESERVED:
+            for directive_left, directive_right in product(DIRECTIVE, repeat=2):
+                result = lexer_main([directive_left+reserved+directive_right])
+                self.assertEqual(result[0][0][1], 'directive')
+                self.assertEqual(len(result[0]), 1 if directive_left in OPEN_DIRECTIVE else 3)
+
+    def test_distinguish_symbols_next_to_numbers(self):
+        for symbol in SYMBOLS:
+            for numbers_left, number_right in product(NUMBERS, repeat=2):
+                result = lexer_main([number_left+symbol+number_right])
+                self.assertEqual(result[0][0][1], 'numbers')
+                self.assertEqual(result[0][1][1], 'symbols')
+                self.assertEqual(result[0][2][1], 'numbers')
+    
+    def test_distinguish_symbols_next_to_letters(self):
+        for symbol in SYMBOLS:
+            for letter_left, letter_right in product(LETTERS, repeat=2):
+                result = lexer_main([letter_left+symbol+letter_right])
+                self.assertEqual(result[0][0][1], 'letters')
+                self.assertEqual(result[0][1][1], 'symbols')
+                self.assertEqual(result[0][2][1], 'letters')
 if __name__ == '__main__':
     unittest.main()
