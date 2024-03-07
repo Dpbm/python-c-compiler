@@ -4,7 +4,10 @@ from lexer import lexer_main
 
 def main(file):
     tokens = lexer_main(file.read().splitlines())
-    print(tokens)
+
+    for i, tokens_list in enumerate(tokens):
+        for token in tokens_list: 
+            print('linha: ', i+1, ' token: ', token[0], ' tipo: ', token[1])
 
 if __name__ == "__main__":
     arguments = sys.argv
