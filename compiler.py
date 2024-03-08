@@ -4,8 +4,8 @@ from lexer import lexer
 
 def main(file):
     tokens = lexer(file.read().splitlines())
-    for token in tokens:
-        print(token)
+    for token, token_type, position in tokens:
+        print(f'token: {token}  type: {token_type}  line: {position}')
 
 if __name__ == "__main__":
     arguments = sys.argv
