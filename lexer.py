@@ -1,110 +1,227 @@
-from constants import DIRECTIVE_ONE_LINE, SYMBOLS_TYPES, COMPLETE_COMPOUND_SYMBOLS, COMPOUNDS_SYMBOLS, DIRECTIVE_MULTIPLE_LINES_BEGIN, DIRECTIVE_MULTIPLE_LINES_END
+from string import ascii_uppercase, ascii_lowercase, digits
 
-def get_type(char):
-    for s_type, s_set in SYMBOLS_TYPES.items():
-        if(char in s_set):
-            return s_type
-    return None
+LETTERS = set(list(ascii_uppercase+ascii_lowercase))
+NUMBERS = set(list(digits))
 
-def check_token_characters(token):
-    if(not len(token) or not get_type(token[0])):
-        return False
+class Line:
+    i = 0
+    line = ''
+    def __init__(self, line):
+        self.line = line
+
+    def __next__(self):
+        if(self.i >= len(self.line)):
+            return ''
+        else:
+            char_to_return = self.line[self.i]
+            self.i += 1
+            return char_to_return
     
-    first_char_type = get_type(token[0])
-    for char in token:
-        if(get_type(char) != first_char_type):
-            return False
-    return True
+    def __str__(self):
+        return self.line[self.i]
 
-def lexer_main(file):
-    directive_multiple_lines = False
-    tokens_table = []
-    
-    for i in range(len(file)):
-        tokens,directive_multiple_lines = lexer(file[i],directive_multiple_lines)
-        if(tokens):
-            tokens_table.append(tokens)
-    return tokens_table
+    def reset(self, steps):
+        self.i -= steps+1
 
+    def get_atual_char(self):
+        return self.line[self.i-1]
 
-def lexer(line, directive_multiple_lines=False):
-    line = line.replace('\n', '')
+def lexer(source):
+    tokens = []
+    string_text_block = False
+    char_text_block = False
+    directive_block = False
+    letters_block = False
+    numbers_block = False
+    text = ''
 
-    if(not line):
-        return [], False
-   
-    token = ''
-    line += ' '
-    first_type = get_type(line[0])
-    found_tokens = []
-    string = False
+    for i,line in enumerate(source):
+        actual_line = i+1
+        l = Line(line)
 
-    for i,char in enumerate(line):
-        actual_char_type = get_type(char)
-       
-        if(string):
-            if(char == '"'):
-                string=False
-                found_tokens.append((token, 'text'))
-            else:
-                token += char
+        char = next(l)
+            
+        while(char):
+            found_reserved = False
+         
+            if(string_text_block):
+                if(char == '"'):
+                    tokens.append((text, 'text', actual_line))
+                    tokens.append(('"', 'symbol', actual_line))
+                    string_text_block = False
+                    text = ''
+                else:            
+                    text += char
+                
+                char = next(l)
+                continue
+            
+            if(char_text_block):
+                if(char == "'"):
+                    tokens.append((text, 'text', actual_line))
+                    tokens.append(("'", 'symbol', actual_line))
+                    char_text_block = False
+                    text = ''
+                else:            
+                    text += char
+
+                char = next(l)
                 continue
 
+            if(directive_block):
+                if(char == '*'):
+                    if(next(l) == "/"):
+                        tokens.append(('*/', 'directive', actual_line))
+                        directive_block = False
+                char = next(l)
+                continue
 
-
-        if(first_type != actual_char_type):
-            token_type = get_type(token)
-            if((token_type and token) or 
-               (not token_type and check_token_characters(token))):                
-
-                if(token == '"' and not string):
-                    string = True
-
-
-                if(directive_multiple_lines and token != DIRECTIVE_MULTIPLE_LINES_END):
+            if(letters_block):
+                if(char not in LETTERS):               
+                    letters_block = False
+                    tokens.append((text, 'letters', actual_line))
+                    text = ''
+                else:
+                    text += char
+                    char = next(l)
+                    continue
+            
+            if(numbers_block):
+                if(char not in NUMBERS):               
+                    numbers_block = False
+                    tokens.append((text, 'numbers', actual_line))
+                    text = ''
+                else:
+                    text += char
+                    char = next(l)
                     continue
 
-                found_tokens.append((token, token_type if token_type else get_type(token[0])))
-                
-                
-                if(token == DIRECTIVE_MULTIPLE_LINES_BEGIN):
-                    directive_multiple_lines = True
-                elif(token == DIRECTIVE_MULTIPLE_LINES_END):
-                    directive_multiple_lines = False
+            # symbols and directives
+            if(not char or char in {'\t', '\n', ' '}):
+                char = next(l)
+                continue
 
-                if(token_type == 'directive' and token in DIRECTIVE_ONE_LINE):
-                    break
-
-            first_type = actual_char_type
-            token = ''
-        
-        elif(first_type == 'symbols' and token in COMPLETE_COMPOUND_SYMBOLS):
-            if(not directive_multiple_lines and token in DIRECTIVE_ONE_LINE):    
-                found_tokens.append((token, get_type(token)))
+            elif(char == '#'):
+                tokens.append((char, 'directive', actual_line))
                 break
+
+            elif(char in {'{', '}', ',', ';', '(', ')', '[', ']'}):
+                tokens.append((char, 'symbol', actual_line))
+       
+            elif(char == '='):
+                tokens.append(('==' if next(l)=='=' else '=', 'symbol', actual_line))
+                
+            elif(char == '+'):
+                next_char = next(l)
+
+                if(next_char == '='):
+                    tokens.append(('+=', 'symbol', actual_line))
+                elif(next_char == '+'):
+                    tokens.append(('++', 'symbol', actual_line))
+                else:
+                    tokens.append(('+', 'symbol', actual_line))
             
-            if((directive_multiple_lines and token==DIRECTIVE_MULTIPLE_LINES_END) or
-               (not directive_multiple_lines and token == DIRECTIVE_MULTIPLE_LINES_BEGIN) or 
-               (not directive_multiple_lines)
-               ):
-                found_tokens.append((token, get_type(token)))
-                first_type = actual_char_type
+            elif(char == '-'):
+                next_char = next(l)
 
-            if(token == DIRECTIVE_MULTIPLE_LINES_BEGIN):
-                directive_multiple_lines = True
-            elif(token == DIRECTIVE_MULTIPLE_LINES_END):
-                directive_multiple_lines = False
+                if(next_char == '='):
+                    tokens.append(('-=', 'symbol', actual_line))
+                elif(next_char == '-'):
+                    tokens.append(('--', 'symbol', actual_line))
+                else:
+                    tokens.append(('-', 'symbol', actual_line))
+
+            elif(char == '*'):
+                next_char = next(l)
+
+                if(next_char == '='):
+                    tokens.append(('*=', 'symbol', actual_line))
+                elif(next_char == '*'):
+                    tokens.append(('**', 'symbol', actual_line))
+                else:
+                    tokens.append(('*', 'symbol', actual_line))
+                
+            elif(char == '/'):
+                next_char = next(l)
+
+                if(next_char == '/'):
+                    tokens.append(('//', 'directive', actual_line))
+                    break;
+                elif(next_char == '='):
+                    tokens.append(('/=', 'symbol', actual_line))
+                elif(next_char == '*'):
+                    tokens.append(('/*', 'directive', actual_line))
+                    directive_block = True
+                else:
+                    tokens.append(('/', 'symbol', actual_line))
+
+            elif(char == '<'):
+                tokens.append(('<=' if next(l)=='=' else '<', 'symbol', actual_line))
             
+            elif(char == '>'):
+                tokens.append(('>=' if next(l)=='=' else '>', 'symbol', actual_line))
 
-            token=''
+            elif(char == "'"):
+                tokens.append(("'", 'symbol', actual_line))
+                char_text_block = True
+
+            elif(char == '"'):
+                tokens.append(('"', 'symbol', actual_line))
+                string_text_block = True
+
+
+            # reserved
+            elif(char == 'm'):
+                found_reserved = check_reserved(l, {'main'})
+                if(found_reserved): 
+                    tokens.append((found_reserved, 'reserved', actual_line))
             
+            elif(char == 'e'):
+                found_reserved = check_reserved(l, {'else'})
+                if(found_reserved): 
+                    tokens.append((found_reserved, 'reserved', actual_line))
 
-        elif(first_type == 'symbols' and (token not in COMPOUNDS_SYMBOLS or token+char not in COMPLETE_COMPOUND_SYMBOLS) and not directive_multiple_lines):
-            if(token):
-                found_tokens.append((token, 'symbols'))
-            first_type = actual_char_type
-            token=''
+            elif(char == 'i'):
+                reserved_starting_with_i = {'int', 'if'}
+                found_reserved = check_reserved(l, reserved_starting_with_i)
+                if(found_reserved): 
+                    tokens.append((found_reserved, 'reserved', actual_line))
+            
+            elif(char == 'p'):
+                found_reserved = check_reserved(l, {'printf'})
+                if(found_reserved): 
+                    tokens.append((found_reserved, 'reserved', actual_line))
 
-        token += char
+            elif(char == 'f'):
+                reserved_starting_with_f = {'float', 'for'}
+                found_reserved = check_reserved(l, reserved_starting_with_f)
+                if(found_reserved): 
+                    tokens.append((found_reserved, 'reserved', actual_line))
+            
+            if(not found_reserved and char in LETTERS):
+                letters_block = True
+                continue
+            
+            if(char in NUMBERS):
+                numbers_block = True
+                continue
 
-    return found_tokens, directive_multiple_lines
+            char = next(l)
+
+    return tokens
+
+def check_reserved(line, reserved_words):
+    j = 0
+    larger_word = len(max(reserved_words)) 
+    token = line.get_atual_char()+next(line)
+
+    while(j < larger_word and token not in reserved_words):
+        j+=1
+        token += next(line)
+
+    if(token in reserved_words):
+        reserved_words_list = list(reserved_words)
+        return reserved_words_list[reserved_words_list.index(token)]
+    else:
+        line.reset(j)
+        return ''

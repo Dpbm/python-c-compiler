@@ -1,13 +1,11 @@
 import sys
 import os
-from lexer import lexer_main
+from lexer import lexer
 
 def main(file):
-    tokens = lexer_main(file.read().splitlines())
-
-    for i, tokens_list in enumerate(tokens):
-        for token in tokens_list: 
-            print('linha: ', i+1, ' token: ', token[0], ' tipo: ', token[1])
+    tokens = lexer(file.read().splitlines())
+    for token, token_type, position in tokens:
+        print(f'token: {token}  type: {token_type}  line: {position}')
 
 if __name__ == "__main__":
     arguments = sys.argv
