@@ -20,8 +20,11 @@ class Line:
     def __str__(self):
         return self.line[self.i]
 
-    def reset(self, steps):
-        self.i -= steps+1
+    def get_next(self, n_i):
+        return self.line[self.i+n_i] if (self.i+n_1 < len(self.line)) else ''
+
+    def go_forward(self, steps):
+        self.i += steps
 
     def get_atual_char(self):
         return self.line[self.i-1]
@@ -213,14 +216,15 @@ def lexer(source):
 def check_reserved(line, reserved_words):
     j = 0
     larger_word = len(max(reserved_words)) 
-    token = line.get_atual_char()+next(line)
+    token = line.get_atual_char()+line.get_next(1)
 
     while(j < larger_word and token not in reserved_words):
         j+=1
-        token += next(line)
+        token += line.get_next(j)
 
     if(token in reserved_words):
         reserved_words_list = list(reserved_words)
+        line.go_forward(j+1)
         return reserved_words_list[reserved_words_list.index(token)]
     else:
         line.reset(j)

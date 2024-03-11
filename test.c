@@ -11,6 +11,8 @@ main()
   else if(a == b)
     a -= 1;
 
+  int *seq = 1;
+
   /* hello world
     dsadasd231212312*@*@***/
   // chahahahahah
