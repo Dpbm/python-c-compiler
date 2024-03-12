@@ -9,25 +9,16 @@ class Line:
     def __init__(self, line):
         self.line = line
 
-    def __next__(self):
-        if(self.i >= len(self.line)):
-            return ''
-        else:
-            char_to_return = self.line[self.i]
-            self.i += 1
-            return char_to_return
-    
-    def __str__(self):
-        return self.line[self.i]
-
     def get_next(self, n_i):
-        return self.line[self.i+n_i] if (self.i+n_1 < len(self.line)) else ''
+        return self.line[self.i+n_i] if (self.i+n_i < len(self.line)) else ''
 
     def go_forward(self, steps):
         self.i += steps
 
-    def get_atual_char(self):
-        return self.line[self.i-1]
+    def get_actual_char(self):
+        if(self.i >= len(self.line)):
+            return None
+        return self.line[self.i]
 
 def lexer(source):
     tokens = []
@@ -42,10 +33,10 @@ def lexer(source):
         actual_line = i+1
         l = Line(line)
 
-        char = next(l)
             
-        while(char):
+        while(l.get_actual_char()):
             found_reserved = False
+            char = l.get_actual_char()
          
             if(string_text_block):
                 if(char == '"'):
@@ -56,7 +47,7 @@ def lexer(source):
                 else:            
                     text += char
                 
-                char = next(l)
+                l.go_forward(1)
                 continue
             
             if(char_text_block):
@@ -67,16 +58,16 @@ def lexer(source):
                     text = ''
                 else:            
                     text += char
-
-                char = next(l)
+                l.go_forward(1)
                 continue
 
             if(directive_block):
                 if(char == '*'):
-                    if(next(l) == "/"):
+                    if(l.get_next(1) == "/"):
                         tokens.append(('*/', 'directive', actual_line))
                         directive_block = False
-                char = next(l)
+                        l.go_forward(1)
+                l.go_forward(1)
                 continue
 
             if(letters_block):
@@ -86,7 +77,7 @@ def lexer(source):
                     text = ''
                 else:
                     text += char
-                    char = next(l)
+                    l.go_forward(1)
                     continue
             
             if(numbers_block):
@@ -96,12 +87,12 @@ def lexer(source):
                     text = ''
                 else:
                     text += char
-                    char = next(l)
+                    l.go_forward(1)
                     continue
 
             # symbols and directives
             if(not char or char in {'\t', '\n', ' '}):
-                char = next(l)
+                l.go_forward(1)
                 continue
 
             elif(char == '#'):
@@ -112,57 +103,88 @@ def lexer(source):
                 tokens.append((char, 'symbol', actual_line))
        
             elif(char == '='):
-                tokens.append(('==' if next(l)=='=' else '=', 'symbol', actual_line))
+                if(l.get_next(1) == '='):
+                    tokens.append(('==', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
+                else:
+                    tokens.append(('=', 'symbol', actual_line))
                 
             elif(char == '+'):
-                next_char = next(l)
+                next_char = l.get_next(1)
 
                 if(next_char == '='):
                     tokens.append(('+=', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
                 elif(next_char == '+'):
                     tokens.append(('++', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
                 else:
                     tokens.append(('+', 'symbol', actual_line))
             
             elif(char == '-'):
-                next_char = next(l)
+                next_char = l.get_next(1)
 
                 if(next_char == '='):
                     tokens.append(('-=', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
                 elif(next_char == '-'):
                     tokens.append(('--', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
                 else:
                     tokens.append(('-', 'symbol', actual_line))
 
             elif(char == '*'):
-                next_char = next(l)
+                next_char = l.get_next(1)
 
                 if(next_char == '='):
                     tokens.append(('*=', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
                 elif(next_char == '*'):
                     tokens.append(('**', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
                 else:
                     tokens.append(('*', 'symbol', actual_line))
                 
             elif(char == '/'):
-                next_char = next(l)
+                next_char = l.get_next(1)
 
                 if(next_char == '/'):
                     tokens.append(('//', 'directive', actual_line))
-                    break;
+                    break
                 elif(next_char == '='):
                     tokens.append(('/=', 'symbol', actual_line))
+                    l.go_forward(2)
+                    continue
                 elif(next_char == '*'):
                     tokens.append(('/*', 'directive', actual_line))
+                    l.go_forward(2)
                     directive_block = True
+                    continue
                 else:
                     tokens.append(('/', 'symbol', actual_line))
 
             elif(char == '<'):
-                tokens.append(('<=' if next(l)=='=' else '<', 'symbol', actual_line))
+                if(l.get_next(1) == '='):
+                    tokens.append(('<=', 'symbol' ,actual_line))
+                    l.go_forward(2)
+                    continue
+                else:
+                    tokens.append(('<', 'symbol', actual_line))
             
             elif(char == '>'):
-                tokens.append(('>=' if next(l)=='=' else '>', 'symbol', actual_line))
+                if(l.get_next(1) == '='):
+                    tokens.append(('>=', 'symbol' ,actual_line))
+                    l.go_forward(2)
+                    continue
+                else:
+                    tokens.append(('>', 'symbol', actual_line))
 
             elif(char == "'"):
                 tokens.append(("'", 'symbol', actual_line))
@@ -200,7 +222,9 @@ def lexer(source):
                 found_reserved = check_reserved(l, reserved_starting_with_f)
                 if(found_reserved): 
                     tokens.append((found_reserved, 'reserved', actual_line))
-            
+           
+            print(line, char, l.get_next(-1), found_reserved, char in LETTERS)
+
             if(not found_reserved and char in LETTERS):
                 letters_block = True
                 continue
@@ -209,14 +233,13 @@ def lexer(source):
                 numbers_block = True
                 continue
 
-            char = next(l)
-
+            l.go_forward(1)
     return tokens
 
 def check_reserved(line, reserved_words):
     j = 0
     larger_word = len(max(reserved_words)) 
-    token = line.get_atual_char()+line.get_next(1)
+    token = line.get_actual_char()+line.get_next(1)
 
     while(j < larger_word and token not in reserved_words):
         j+=1
@@ -227,5 +250,4 @@ def check_reserved(line, reserved_words):
         line.go_forward(j+1)
         return reserved_words_list[reserved_words_list.index(token)]
     else:
-        line.reset(j)
         return ''
