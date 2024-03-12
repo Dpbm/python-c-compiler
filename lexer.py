@@ -216,14 +216,22 @@ def lexer(source):
                 found_reserved = check_reserved(l, {'printf'})
                 if(found_reserved): 
                     tokens.append((found_reserved, 'reserved', actual_line))
+            
+            elif(char == 'v'):
+                found_reserved = check_reserved(l, {'void'})
+                if(found_reserved): 
+                    tokens.append((found_reserved, 'reserved', actual_line))
+            
+            elif(char == 'c'):
+                found_reserved = check_reserved(l, {'char'})
+                if(found_reserved): 
+                    tokens.append((found_reserved, 'reserved', actual_line))
 
             elif(char == 'f'):
                 reserved_starting_with_f = {'float', 'for'}
                 found_reserved = check_reserved(l, reserved_starting_with_f)
                 if(found_reserved): 
                     tokens.append((found_reserved, 'reserved', actual_line))
-           
-            print(line, char, l.get_next(-1), found_reserved, char in LETTERS)
 
             if(not found_reserved and char in LETTERS):
                 letters_block = True
@@ -237,17 +245,17 @@ def lexer(source):
     return tokens
 
 def check_reserved(line, reserved_words):
-    j = 0
+    j = 1
     larger_word = len(max(reserved_words)) 
-    token = line.get_actual_char()+line.get_next(1)
+    token = line.get_actual_char()+line.get_next(j)
 
-    while(j < larger_word and token not in reserved_words):
+    while(j <= larger_word and token not in reserved_words):
         j+=1
         token += line.get_next(j)
 
     if(token in reserved_words):
         reserved_words_list = list(reserved_words)
-        line.go_forward(j+1)
+        line.go_forward(j)
         return reserved_words_list[reserved_words_list.index(token)]
     else:
         return ''

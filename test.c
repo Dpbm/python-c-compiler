@@ -23,3 +23,7 @@ main()
     printf("hello world!!!");
   }
 }
+
+void test(){
+	printf("hehehehe");
+}
