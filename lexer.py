@@ -194,6 +194,11 @@ def lexer(source):
                 tokens.append(('"', 'symbol', actual_line))
                 string_text_block = True
 
+            elif(char == '!'):
+                if(l.get_next(1) == '='):
+                    tokens.append(('!=', 'symbol' ,actual_line))
+                    l.go_forward(2)
+                    continue
 
             # reserved
             elif(char == 'm'):
